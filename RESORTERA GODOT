@@ -1,0 +1,65 @@
+extends Node2D
+
+enum SlingState{
+	idle,
+	pulling,
+	birdThrown,
+	reset
+}
+# Declare member variables here. Examples:
+# var a = 2
+# var b = "text"
+
+var SlingShotState
+var LeftLine
+var RightLine
+var Player
+var CenterOfSlingShot
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	SlingShotState = SlingState.idle
+	LeftLine = $LeftLine
+	RightLine = $RightLine
+	CenterOfSlingShot = $CenterOfSlingShot.position
+	
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+#func _process(delta):
+func _process(delta):
+	match SlingShotState:
+		SlingState.idle:
+			pass
+		SlingState.pulling:
+			var player = get_tree().get_nodes_in_group("Player")[0]
+			if Input.is_action_pressed("Left_Mouse"):
+				var mousepos = get_global_mouse_position()
+				if mousepos.distance_to(CenterOfSlingShot) > 130:
+					mousepos = (mousepos - CenterOfSlingShot).normalized() * 130 + CenterOfSlingShot
+				player.position = mousepos
+				LeftLine.points[1] = mousepos
+				RightLine.points[1] = mousepos
+			else:
+				var location = get_global_mouse_position()
+				var distance = location.distance_to(CenterOfSlingShot)
+				var velocity = CenterOfSlingShot - location
+
+				player.ThrowBird()
+				player = player as RigidBody2D
+				player.apply_impulse(Vector2(),velocity)
+				
+				GameManager.CurrentGameState = GameManager.GameState.Play
+			pass
+		SlingState.birdThrown:
+			pass
+		SlingState.reset:
+			pass
+	pass
+	
+
+func _on_TouchArea_input_event(viewport, event, shape_idx):
+	if SlingShotState == SlingState.idle:
+		if (event is InputEventMouseButton && event.pressed):
+			SlingShotState = SlingState.pulling
+	pass # Replace with function body.
